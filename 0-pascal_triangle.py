@@ -1,25 +1,17 @@
-#!/usr/bin/python3
-"""
-pascal's triangle
-"""
-
-
 def pascal_triangle(n):
-    """This is a function for making pascal's triangle in a form of lists
-    Args:
-        - n: the number of rows in the triangle
-    Returns:
-        - list of lists in case of n > 0
-        - empty list in case of n <= 0
-    """
-    pascal = []
+    # Return an empty list if n is less than or equal to 0
     if n <= 0:
-        return pascal
-    for i in range(n):
-        pre = [
-            (1 if j == 0 or j == i else pascal[i - 1][j] + pascal[i - 1][j - 1])
-            for j in range(i + 1)
-        ]
-        pascal.append(pre)
+        return []
 
-    return pascal
+    triangle = []  # This will hold the rows of Pascal's Triangle
+
+    for row_num in range(n):
+        row = [1] * (row_num + 1)  # Initialize a row with 1s
+
+        # Calculate the values for the inner elements of the row
+        for j in range(1, row_num):
+            row[j] = triangle[row_num - 1][j - 1] + triangle[row_num - 1][j]
+
+        triangle.append(row)  # Add the row to the triangle
+
+    return triangle
