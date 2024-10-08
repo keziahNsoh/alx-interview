@@ -3,7 +3,6 @@
 0-pascal_triangle
 """
 
-
 def pascal_triangle(n):
     """Returns a list of lists representing Pascal's triangle of n."""
     if n <= 0:
@@ -21,3 +20,4 @@ def pascal_triangle(n):
         triangle.append(row)  # Add the row to the triangle
 
     return triangle
+
