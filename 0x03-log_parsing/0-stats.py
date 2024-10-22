@@ -11,41 +11,49 @@ lines_read = 0
 # Regular expression to match the log line format
 log_pattern = re.compile(
     r"(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}) - \["
-    r'(.*?)\] "GET /projects/260 HTTP/1\.1" (\d{3}) (\d+)'
+    r'(.*?)\] "GET /projects/260 HTTP/1\.1" '
+    r"(\d{3}) (\d+)"
 )
 
 
 def print_stats():
-    """Print the current statistics."""
-    print(f"File size: {total_file_size}")
+    """Print the collected statistics."""
+    print(f"Total file size: {total_file_size}")
     for code in sorted(status_codes.keys()):
-        if status_codes[code] > 0:
-            print(f"{code}: {status_codes[code]}")
+        count = status_codes[code]
+        if count > 0:
+            print(f"{code}: {count}")
 
 
 def signal_handler(sig, frame):
-    """Handle keyboard interruption (CTRL + C)."""
+    """Handle keyboard interruption."""
     print_stats()
     sys.exit(0)
 
 
-# Set up signal handling for keyboard interruption
+# Register the signal handler for keyboard interruption
 signal.signal(signal.SIGINT, signal_handler)
 
-# Read lines from stdin
+# Read input line by line
 try:
     for line in sys.stdin:
+        line = line.strip()
         match = log_pattern.match(line)
         if match:
-            lines_read += 1
-            total_file_size += int(match.group(4))
-            # File size is the fourth group
-            status_code = int(match.group(3))  # Status code is the third group
-            if status_code in status_codes:
-                status_codes[status_code] += 1
+            ip, date, status_code, file_size = match.groups()
+            file_size = int(file_size)
+            status_code = int(status_code)
 
-            # Print statistics every 10 lines
+            # Update metrics
+            total_file_size += file_size
+            status_codes[status_code] += 1
+            lines_read += 1
+
+            # Print stats every 10 lines
             if lines_read % 10 == 0:
                 print_stats()
+
 except KeyboardInterrupt:
     print_stats()
+except Exception:  # Catch all other exceptions
+    pass  # Handle exceptions if necessary
