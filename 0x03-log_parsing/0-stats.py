@@ -10,7 +10,8 @@ lines_read = 0
 
 # Regular expression to match the log line format
 log_pattern = re.compile(
-    r'(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}) - \[(.*?)\] "GET /projects/260 HTTP/1\.1" (\d{3}) (\d+)'
+    r"(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}) - \["
+    r'(.*?)\] "GET /projects/260 HTTP/1\.1" (\d{3}) (\d+)'
 )
 
 
@@ -37,7 +38,8 @@ try:
         match = log_pattern.match(line)
         if match:
             lines_read += 1
-            total_file_size += int(match.group(4))  # File size is the fourth group
+            total_file_size += int(match.group(4))
+            # File size is the fourth group
             status_code = int(match.group(3))  # Status code is the third group
             if status_code in status_codes:
                 status_codes[status_code] += 1
