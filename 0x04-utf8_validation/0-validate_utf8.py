@@ -1,9 +1,10 @@
 #!/usr/bin/python3
 
-# [229, 65, 127, 256]
+
 def validUTF8(data):
+    # It shows if a given data set represents a valid UTF-8 encoding
     expected_bytes = 0
-    
+
     for number in data:
         if expected_bytes != 0:
             # We are expecting continuation bytes
