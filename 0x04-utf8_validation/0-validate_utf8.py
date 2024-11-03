@@ -1,12 +1,18 @@
 #!/usr/bin/python3
 
-
 def validUTF8(data):
-    """Determines if a given data set represents a valid UTF-8 encoding."""
+    """Determines if a given data set represents a valid UTF-8 encoding.
+
+    Args:
+        data (list): A list of integers representing bytes.
+
+    Returns:
+        bool: True if the data is valid UTF-8 encoding, otherwise False.
+    """
     expected_bytes = 0
 
     for num in data:
-        byte = num & 0xFF
+        byte = num & 0xFF  # Mask to get the last 8 bits
 
         if expected_bytes == 0:
             if (byte >> 7) == 0b0:  # 1-byte character
@@ -20,9 +26,10 @@ def validUTF8(data):
             else:
                 return False  # Invalid start byte
         else:
-            if (byte >> 6) != 0b10:  # Continuation byte check
+            if (byte >> 6) != 0b10:  # Check if it's a continuation byte
                 return False
 
-        expected_bytes -= 1
+        expected_bytes -= 1  # Decrement the expected bytes count
 
-    return expected_bytes == 0
+    return expected_bytes == 0  # Return True if all expected bytes are accounted for
+
