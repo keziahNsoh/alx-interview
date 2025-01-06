@@ -11,19 +11,6 @@ def print_stats(total_size, status_codes):
             print("{}: {}".format(code, status_codes[code]))
 
 
-def validate_line(line):
-    """Validate line format"""
-    try:
-        parts = line.split()
-        if len(parts) < 7:
-            return None, None
-        status_code = int(parts[-2])
-        file_size = int(parts[-1])
-        return status_code, file_size
-    except (ValueError, IndexError):
-        return None, None
-
-
 def main():
     """Process log input and compute metrics"""
     total_size = 0
@@ -35,19 +22,29 @@ def main():
 
     try:
         for line in sys.stdin:
-            status_code, file_size = validate_line(line)
-            if file_size is not None:
+            line = line.strip()
+            line_count += 1
+            try:
+                parts = line.split()
+                # Check log format
+                if len(parts) != 9 or parts[5] != '"GET' or \
+                   parts[6] != '/projects/260' or parts[7] != 'HTTP/1.1"':
+                    continue
+                status_code = int(parts[-2])
+                file_size = int(parts[-1])
+                
                 if status_code in status_codes:
                     status_codes[status_code] += 1
                 total_size += file_size
-                line_count += 1
-
+                
                 if line_count % 10 == 0:
                     print_stats(total_size, status_codes)
+            except (ValueError, IndexError):
+                continue
 
     except KeyboardInterrupt:
         print_stats(total_size, status_codes)
-        raise
+        sys.exit(0)
 
     print_stats(total_size, status_codes)
 
