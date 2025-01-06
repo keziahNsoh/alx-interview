@@ -1,59 +1,58 @@
 #!/usr/bin/python3
+"""Script that reads stdin line by line and computes metrics"""
 import sys
 import re
-import signal
-
-# Initialize variables
-total_file_size = 0
-status_codes = {200: 0, 301: 0, 400: 0, 401: 0, 403: 0, 404: 0, 405: 0, 500: 0}
-lines_read = 0
-
-# Regular expression to match the log line format
-log_pattern = re.compile(
-    r"(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}) - \["
-    r'(.*?)\] "GET /projects/260 HTTP/1\.1" '
-    r"(\d{3}) (\d+)"
-)
 
 
-def print_stats():
-    """Print the collected statistics."""
-    print(f"Total file size: {total_file_size}")
+def is_valid_line(line):
+    """Check if line matches required format"""
+    pattern = r'^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3} - \[\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d+\] "GET /projects/260 HTTP/1\.1" \d{3} \d+$'
+    return re.match(pattern, line) is not None
+
+
+def print_stats(total_size, status_codes):
+    """Print statistics"""
+    print("File size: {}".format(total_size))
     for code in sorted(status_codes.keys()):
-        count = status_codes[code]
-        if count > 0:
-            print(f"{code}: {count}")
+        if status_codes[code] > 0:
+            print("{}: {}".format(code, status_codes[code]))
 
 
-def signal_handler(sig, frame):
-    """Handle keyboard interruption."""
-    print_stats()
-    sys.exit(0)
+def main():
+    """Main function"""
+    total_size = 0
+    line_count = 0
+    status_codes = {
+        200: 0, 301: 0, 400: 0, 401: 0,
+        403: 0, 404: 0, 405: 0, 500: 0
+    }
 
+    try:
+        for line in sys.stdin:
+            line = line.strip()
+            line_count += 1
 
-# Register the signal handler for keyboard interruption
-signal.signal(signal.SIGINT, signal_handler)
+            if not is_valid_line(line):
+                continue
 
-# Read input line by line
-try:
-    for line in sys.stdin:
-        line = line.strip()
-        match = log_pattern.match(line)
-        if match:
-            ip, date, status_code, file_size = match.groups()
-            file_size = int(file_size)
-            status_code = int(status_code)
+            try:
+                parts = line.split()
+                status_code = int(parts[-2])
+                file_size = int(parts[-1])
 
-            # Update metrics
-            total_file_size += file_size
-            status_codes[status_code] += 1
-            lines_read += 1
+                if status_code in status_codes:
+                    status_codes[status_code] += 1
+                total_size += file_size
 
-            # Print stats every 10 lines
-            if lines_read % 10 == 0:
-                print_stats()
+                if line_count % 10 == 0:
+                    print_stats(total_size, status_codes)
 
-except KeyboardInterrupt:
-    print_stats()
-except Exception:  # Catch all other exceptions
-    pass  # Handle exceptions if necessary
+            except (ValueError, IndexError):
+                continue
+
+    except KeyboardInterrupt:
+        print_stats(total_size, status_codes)
+        raise
+
+if __name__ == "__main__":
+    main()
