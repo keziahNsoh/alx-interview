@@ -36,8 +36,17 @@ def main():
                     if line_count % 10 == 0:
                         print_stats(total_size, status_codes)
 
-            except (ValueError, IndexError):
-                pass
+                else:
+                    # Handle invalid log format (too few parts)
+                    sys.stderr.write(
+                        f"Error: Invalid log format (too few parts): {line}\n"
+                    )
+
+            except (ValueError, IndexError) as e:
+                # Handle parsing errors and print to stderr
+                sys.stderr.write(
+                    f"Error processing log line: {str(e)}\n"
+                )
 
     except KeyboardInterrupt:
         print_stats(total_size, status_codes)
